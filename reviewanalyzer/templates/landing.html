@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RevAn | Review Analyzer & Summarizer</title>
+    <link rel="stylesheet" href="{% static '../static/main.css' %}">
+</head>
+<body>
+    <div class="container">
+        <div class="left-section">
+            <h1 class="logo">RevAn</h1>
+            <h2>Summarize Reviews Effortlessly</h2>
+            <p>
+            RevAn transform how you understand customer feedback by automatically
+            processing large volumes of product reviews into simpler forms. Our
+            website generate concise summaries and sentiment analysis in seconds
+            with just a click of a button.<br>
+            Gain immediate understanding of customer opinions, identify product's
+            strengths and weaknesses faster and make data-driven decisions while
+            saving hours of manual review processing.<br>
+            Experience the power of automated reviews analysis with complete
+            transparency and understand how the said analysis was performed.
+            </p>
+        </div>
+
+        <div class="right-section">
+            <div class="auth-card">
+                <h2>Welcome!</h2>
+                <p>Start your journey with RevAn</p>
+                <a href="{% url 'signup' %}" class="btn">SignUp</a>
+                <a href="{% url 'login' %}" class="btn secondary">Login</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

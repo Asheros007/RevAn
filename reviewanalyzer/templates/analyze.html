@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Analyze | RevAn{% endblock %}
+
+{% block content %} 
+<h1>Analyze Reviews</h1>
+<p>Paste multiple reviews or upload a .txt file</p>
+
+<div class="card">
+    {% for message in messages %}
+    <p style="color: red;">{{ message }}</p>
+    {% endfor %}
+    <form id="reviewForm" method="POST" enctype="multipart/form-data" action="{% url 'analyze' %}">
+    {% csrf_token %}
+
+        <!--Product Name-->
+        <div class="form-group">
+            <label for="product_name">Product Name *</label>
+            <input type="text" id="product_name" name="product_name" placeholder="Enter product name..." required>
+        </div>
+
+        <!--Review Text-->
+        <div class="form-group">
+            <label for="review_text">Paste reviews (one per line)</label>
+            <textarea name="review_text" id="review_text" rows="10" placeholder="I love RevAn..."></textarea>
+        </div>
+
+        <!--File Upload-->
+        <div class="form-flex">
+            <div class="file-box">
+                <label for="review_file">Upload file (.txt)</label>
+                <input type="file" id="review_file" name="review_file" accept=".txt">
+            </div>
+
+            <!--Buttons-->
+            <div class="action-buttons">
+                <button class="btn primary" type="submit">Analyze Reviews</button>
+                <a href="{% url 'dashboard' %}" class="btn ghost">Cancel</a>
+            </div>
+        </div>
+
+        <!--Info Section-->
+        <div class="info-box">
+            <h4>How it works:</h4>
+            <ul>
+                <li>Enter a product name and paste reviews or upload a file</li>
+                <li>Algorithms analyze sentiment & generate summaries</li>
+                <li>Results show sentiment distribution and insights</li>
+                <li>Results can be saved for later access</li>
+            </ul>
+        </div>
+    </form>
+</div>
+{% endblock %}

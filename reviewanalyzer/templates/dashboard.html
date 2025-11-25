@@ -1,0 +1,534 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard | RevAn{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Welcome back, {{ user.username }}!</h1>
+    <p class="dashboard-subtitle">Here's what's happening with your review analyses</p>
+</div>
+
+<!-- Stats Overview -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+            <div class="stat-number">{{ total_analyses }}</div>
+            <div class="stat-label">Total Analyses</div>
+        </div>
+    </div>
+    
+    <div class="stat-card positive">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+            <div class="stat-number">{{ positive_count }}</div>
+            <div class="stat-label">Positive Reviews</div>
+            <div class="stat-percentage">{{ positive_percentage }}%</div>
+        </div>
+    </div>
+    
+    <div class="stat-card negative">
+        <div class="stat-icon">❌</div>
+        <div class="stat-content">
+            <div class="stat-number">{{ negative_count }}</div>
+            <div class="stat-label">Negative Reviews</div>
+            <div class="stat-percentage">{{ negative_percentage }}%</div>
+        </div>
+    </div>
+    
+    <div class="stat-card neutral">
+        <div class="stat-icon">⚪</div>
+        <div class="stat-content">
+            <div class="stat-number">{{ neutral_count }}</div>
+            <div class="stat-label">Neutral Reviews</div>
+            <div class="stat-percentage">{{ neutral_percentage }}%</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Quick Actions -->
+    <div class="card">
+        <div class="card-header">
+            <h2>🚀 Quick Actions</h2>
+        </div>
+        <div class="card-content">
+            <p class="muted">Analyze and summarize product reviews easily using AI.</p>
+            <div class="action-buttons">
+                <a href="{% url 'analyze' %}" class="btn primary large">
+                    🎯 Analyze New Review
+                </a>
+                <a href="{% url 'history' %}" class="btn secondary large">
+                    📚 View Analysis History
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card">
+        <div class="card-header">
+            <h2>📈 Recent Activity</h2>
+        </div>
+        <div class="card-content">
+            {% if recent_analyses %}
+                <div class="activity-list">
+                    {% for analysis in recent_analyses %}
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            {% if analysis.overall_sentiment == 'positive' %}✅
+                            {% elif analysis.overall_sentiment == 'negative' %}❌
+                            {% else %}⚪{% endif %}
+                        </div>
+                        <div class="activity-details">
+                            <div class="activity-title">
+                                <strong>{{ analysis.product_name|truncatewords:4 }}</strong>
+                                <span class="sentiment-badge sentiment-{{ analysis.overall_sentiment }}">
+                                    {{ analysis.overall_sentiment|title }}
+                                </span>
+                            </div>
+                            <div class="activity-meta">
+                                {{ analysis.created_at|timesince }} ago • 
+                                {{ analysis.total_words }} words • 
+                                Score: {{ analysis.sentiment_score|floatformat:2 }}
+                            </div>
+                        </div>
+                        <a href="{% url 'analysis_detail' analysis.id %}" class="btn small ghost">
+                            View
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if total_analyses > 5 %}
+                <div class="card-footer">
+                    <a href="{% url 'history' %}" class="btn link">View all analyses →</a>
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="empty-state small">
+                    <div class="empty-icon">📊</div>
+                    <h4>No activity yet</h4>
+                    <p>Start by analyzing your first review!</p>
+                    <a href="{% url 'analyze' %}" class="btn primary">Get Started</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Performance Overview -->
+<div class="card">
+    <div class="card-header">
+        <h2>📊 Performance Overview</h2>
+    </div>
+    <div class="card-content">
+        {% if total_analyses > 0 %}
+        <div class="charts-grid">
+            <!-- Sentiment Distribution -->
+            <div class="chart-container">
+                <h4>Sentiment Distribution</h4>
+                <div class="chart-placeholder">
+                    <div class="sentiment-chart">
+                        <div class="chart-bar positive" style="width: {{ positive_percentage }}%">
+                            <span class="chart-label">Positive {{ positive_percentage }}%</span>
+                        </div>
+                        <div class="chart-bar negative" style="width: {{ negative_percentage }}%">
+                            <span class="chart-label">Negative {{ negative_percentage }}%</span>
+                        </div>
+                        <div class="chart-bar neutral" style="width: {{ neutral_percentage }}%">
+                            <span class="chart-label">Neutral {{ neutral_percentage }}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Word Statistics -->
+            <div class="chart-container">
+                <h4>Average Word Distribution</h4>
+                <div class="chart-placeholder">
+                    <div class="word-stats-chart">
+                        <div class="word-stat">
+                            <span class="word-label">Positive</span>
+                            <div class="word-bar">
+                                <div class="word-fill positive" style="width: {{ avg_positive_percentage }}%"></div>
+                            </div>
+                            <span class="word-value">{{ avg_positive_words|floatformat:1 }}</span>
+                        </div>
+                        <div class="word-stat">
+                            <span class="word-label">Negative</span>
+                            <div class="word-bar">
+                                <div class="word-fill negative" style="width: {{ avg_negative_percentage }}%"></div>
+                            </div>
+                            <span class="word-value">{{ avg_negative_words|floatformat:1 }}</span>
+                        </div>
+                        <div class="word-stat">
+                            <span class="word-label">Neutral</span>
+                            <div class="word-bar">
+                                <div class="word-fill neutral" style="width: {{ avg_neutral_percentage }}%"></div>
+                            </div>
+                            <span class="word-value">{{ avg_neutral_words|floatformat:1 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📈</div>
+            <h4>No data to display</h4>
+            <p>Analyze some reviews to see your performance metrics</p>
+            <a href="{% url 'analyze' %}" class="btn primary">Start Analyzing</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+    margin: 0 0 0.5rem 0;
+    color: #1f2937;
+    font-size: 2rem;
+}
+
+.dashboard-subtitle {
+    color: #6b7280;
+    margin: 0;
+    font-size: 1.125rem;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    opacity: 0.8;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.stat-percentage {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.stat-card.positive .stat-number { color: #10b981; }
+.stat-card.negative .stat-number { color: #ef4444; }
+.stat-card.neutral .stat-number { color: #6b7280; }
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Quick Actions */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.btn.large {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    flex: 1;
+    min-width: 200px;
+    text-align: center;
+}
+
+.btn.link {
+    background: transparent;
+    color: #3b82f6;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.btn.link:hover {
+    color: #2563eb;
+    background: transparent;
+}
+
+/* Recent Activity */
+.activity-list {
+    space-y: 1rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    font-size: 1.25rem;
+    width: 40px;
+    text-align: center;
+}
+
+.activity-details {
+    flex: 1;
+}
+
+.activity-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.activity-title strong {
+    color: #1f2937;
+}
+
+.activity-meta {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.sentiment-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.sentiment-positive {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.sentiment-negative {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.sentiment-neutral {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+/* Charts */
+.charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+@media (max-width: 768px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.chart-container h4 {
+    margin: 0 0 1rem 0;
+    color: #374151;
+    font-size: 1rem;
+}
+
+.chart-placeholder {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+/* Sentiment Chart */
+.sentiment-chart {
+    display: flex;
+    height: 40px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+.chart-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.chart-bar.positive {
+    background: #10b981;
+}
+
+.chart-bar.negative {
+    background: #ef4444;
+}
+
+.chart-bar.neutral {
+    background: #6b7280;
+}
+
+.chart-label {
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Word Stats Chart */
+.word-stats-chart {
+    space-y: 1rem;
+}
+
+.word-stat {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.word-label {
+    width: 60px;
+    font-size: 0.875rem;
+    color: #374151;
+    font-weight: 500;
+}
+
+.word-bar {
+    flex: 1;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.word-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.word-fill.positive {
+    background: #10b981;
+}
+
+.word-fill.negative {
+    background: #ef4444;
+}
+
+.word-fill.neutral {
+    background: #6b7280;
+}
+
+.word-value {
+    width: 40px;
+    text-align: right;
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.empty-state.small {
+    padding: 2rem 1rem;
+}
+
+.empty-state.small .empty-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.empty-state.small h4 {
+    font-size: 1.125rem;
+    margin-bottom: 0.5rem;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state h4 {
+    margin: 0 0 0.5rem 0;
+    color: #374151;
+}
+
+.empty-state p {
+    color: #6b7280;
+    margin: 0 0 1.5rem 0;
+}
+
+/* Card Footer */
+.card-footer {
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.muted {
+    color: #6b7280;
+}
+
+.small {
+    font-size: 0.875rem;
+}
+</style>
+
+{% endblock %}

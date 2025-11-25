@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard | RevAn{% endblock %}</title>
+    <link rel="stylesheet" href="{% static '../static/layout.css' %}">
+</head>
+<body>
+    <div class="app">
+        <!--Sidebar-->
+        <aside class="sidebar">
+
+            <div class="brand">
+                <div class="logo-mark">R</div>  
+                <div>
+                    <h1>RevAn</h1>
+                    <p>Review Analyzer</p>
+                </div>
+            </div>
+
+            <nav class="nav">
+
+                <a href="{% url 'dashboard' %}" class="{% if request.path == '/dashboard/' %}active{% endif %}">
+                    <span class="ico">🏠</span> Dashboard
+                </a>
+
+                <a href="{% url 'analyze' %}" class="{% if request.path == '/analyze/' %}active{% endif %}">
+                    <span class="ico">🔍</span> Analyze Reviews
+                </a>
+
+                <a href="{% url 'history' %}" class="{% if request.path == '/history/' %}active{% endif %}">
+                    <span class="ico">📝</span> Analysis History
+                </a>
+
+            </nav>
+
+            <div class="side-footer">
+                <p>Logged in as <strong>{{user.username}}</strong></p>
+                <a href="{% url 'logout' %}" class="btn secondary">Logout</a>
+            </div>
+        </aside>
+
+        <!--Main-->
+        <main class="main">
+            <div class="content-area">
+                {% block content %}
+                {% endblock %}
+            </div>  
+        </main>
+    </div>
+
+    <!--Add active class based on current URL-->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav a');
+
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
